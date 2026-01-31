@@ -170,9 +170,11 @@ else:
         st.dataframe(df)
         target = st.selectbox("Select User", df['email'])
         new_bal = st.number_input("Update Balance", value=0)
+        new_inv = st.number_input("Update Invested", value=0)  # Added this field
         new_int = st.number_input("Update Interest", value=0)
         if st.button("Apply Changes"):
-            supabase.table("profiles").update({"balance": new_bal, "interest": new_int}).eq("email", target).execute()
+            # Added "invested": new_inv to the update logic below
+            supabase.table("profiles").update({"balance": new_bal, "invested": new_inv, "interest": new_int}).eq("email", target).execute()
             st.success(f"Updated {target}")
             st.rerun()
 
