@@ -22,6 +22,22 @@ st.markdown("""
 
     .stApp { background-color: #fcfcfc; color: #111111; }
     
+    /* LOGO ANIMATION */
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.05); opacity: 0.8; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .animated-logo {
+        font-size: 80px; font-weight: 700; color: #000;
+        text-align: center; animation: pulse 3s infinite ease-in-out;
+        margin-bottom: -10px;
+    }
+    .brand-name {
+        font-size: 24px; font-weight: 600; letter-spacing: 5px;
+        text-align: center; color: #333; margin-bottom: 30px;
+    }
+
     /* LOGIN VISIBILITY - BOLD BLACK LABELS */
     .stTextInput label, .stPasswordInput label {
         color: #000000 !important; 
@@ -74,7 +90,10 @@ if st.session_state.user is None:
     st.markdown("<br><br>", unsafe_allow_html=True)
     _, col, _ = st.columns([1, 1.2, 1])
     with col:
-        st.markdown("<h1 style='text-align:center; font-size:70px;'>P.</h1>", unsafe_allow_html=True)
+        # BRANDING ON LOGIN
+        st.markdown('<div class="animated-logo">P.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="brand-name">PRIME ASSETS</div>', unsafe_allow_html=True)
+        
         tab1, tab2 = st.tabs(["Login", "Register"])
         with tab1:
             e = st.text_input("Email Address", placeholder="Enter email address...")
@@ -107,6 +126,8 @@ else:
     choice = st.sidebar.radio("Navigation", menu)
 
     if choice == "Overview":
+        # LOGO ON OVERVIEW
+        st.markdown('<div class="animated-logo" style="text-align:left; font-size:60px;">P.</div>', unsafe_allow_html=True)
         st.markdown(f"<h1>Welcome, {u_data['full_name']} <span class='wave'>👋</span></h1>", unsafe_allow_html=True)
         
         c1, c2, c3, c4 = st.columns(4)
@@ -170,10 +191,9 @@ else:
         st.dataframe(df)
         target = st.selectbox("Select User", df['email'])
         new_bal = st.number_input("Update Balance", value=0)
-        new_inv = st.number_input("Update Invested", value=0)  # Added this field
+        new_inv = st.number_input("Update Invested", value=0)
         new_int = st.number_input("Update Interest", value=0)
         if st.button("Apply Changes"):
-            # Added "invested": new_inv to the update logic below
             supabase.table("profiles").update({"balance": new_bal, "invested": new_inv, "interest": new_int}).eq("email", target).execute()
             st.success(f"Updated {target}")
             st.rerun()
