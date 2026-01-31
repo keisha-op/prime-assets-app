@@ -8,7 +8,7 @@ SUPABASE_KEY = "sb_publishable_IUQtk2m5J5CbNEh3ZM_9Bg_DGyqR9iA"
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # --- 2. ADMIN EMAIL SETTING ---
-ADMIN_EMAIL = "trichofrolicles@gmail.com"
+ADMIN_EMAIL = "primeassets288@gmail.com"
 
 # --- 3. PAGE BRANDING & STYLE ---
 st.set_page_config(page_title="Prime Assets | Global Terminal", layout="wide")
