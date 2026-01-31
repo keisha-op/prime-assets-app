@@ -10,144 +10,162 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 ADMIN_EMAIL = "primeassets288@gmail.com"
 
-st.set_page_config(page_title="Prime Assets | Global Terminal", layout="wide")
+st.set_page_config(page_title="Prime Assets | Institutional Terminal", layout="wide")
 
-# --- 2. ELITE CORPORATE CSS (No Black, No Emojis) ---
+# --- 2. ELITE CSS (Animations & Professional UI) ---
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Roboto+Mono&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
     
-    /* Clean Arctic Background */
-    .stApp { background-color: #f4f7f9; color: #1a1e23; font-family: 'Montserrat', sans-serif; }
+    .stApp { background-color: #f8f9fb; color: #1a1e23; font-family: 'Inter', sans-serif; }
     
-    /* Sidebar: Institutional Blue */
-    [data-testid="stSidebar"] { 
-        background-color: #ffffff !important; 
-        border-right: 1px solid #e0e6ed; 
-        box-shadow: 2px 0 10px rgba(0,0,0,0.02);
+    /* Moving Ticker Animation */
+    @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+    .ticker-wrap { background: #0066ff; color: white; padding: 8px 0; overflow: hidden; font-weight: 600; font-size: 14px; }
+    .ticker-move { display: inline-block; white-space: nowrap; animation: marquee 30s linear infinite; }
+
+    /* Big Logo Circle */
+    .logo-circle {
+        width: 100px; height: 100px; background: #0066ff; color: white;
+        border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        font-size: 60px; font-weight: 800; margin: 0 auto 20px;
+        box-shadow: 0 10px 20px rgba(0,102,255,0.2);
     }
 
-    /* Glass Cards */
+    /* Professional Asset Card */
     .vault-card {
-        background: white;
-        padding: 30px;
-        border-radius: 16px;
-        border: 1px solid #eef2f6;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        transition: transform 0.3s ease;
+        background: white; padding: 25px; border-radius: 12px;
+        border: 1px solid #eef2f6; box-shadow: 0 4px 12px rgba(0,0,0,0.03);
     }
-    .vault-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.08); }
-
-    /* Interactive Asset Row */
+    
+    /* Asset Row with Sparkline Placeholder */
     .asset-row {
         display: flex; justify-content: space-between; align-items: center;
-        padding: 15px 20px; background: white; border-radius: 12px;
+        padding: 15px; background: white; border-radius: 10px;
         margin-bottom: 8px; border: 1px solid #f0f3f7;
     }
-    .asset-row:hover { background: #fafbfc; border-color: #0066ff; cursor: pointer; }
+    .sparkline { font-family: monospace; color: #00875a; font-weight: bold; letter-spacing: -1px; }
 
-    /* Typography */
-    .label { color: #6b778c; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
-    .value { color: #091e42; font-size: 32px; font-weight: 700; font-family: 'Roboto Mono', monospace; }
-    .status-up { color: #00875a; font-weight: 600; font-size: 14px; background: #e3fcef; padding: 4px 10px; border-radius: 20px; }
-
-    /* Custom Button */
     .stButton>button {
         background: #0066ff !important; color: white !important;
-        border-radius: 8px !important; border: none !important;
-        padding: 12px 24px !important; font-weight: 600 !important;
-        width: 100%; transition: 0.3s;
+        border-radius: 8px !important; font-weight: 600 !important; width: 100%;
     }
-    .stButton>button:hover { background: #0052cc !important; box-shadow: 0 4px 12px rgba(0,102,255,0.3); }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. LOGIC ---
+# --- 3. REUSABLE MOVING TICKER ---
+def draw_ticker():
+    st.markdown("""
+        <div class="ticker-wrap">
+            <div class="ticker-move">
+                BTC: $102,401.50 (+2.4%) &nbsp;&nbsp;&nbsp;&nbsp; ETH: $4,211.20 (+1.8%) &nbsp;&nbsp;&nbsp;&nbsp; 
+                SOL: $245.89 (+5.2%) &nbsp;&nbsp;&nbsp;&nbsp; GOLD: $2,340.05 (-0.2%) &nbsp;&nbsp;&nbsp;&nbsp;
+                BNB: $612.45 (+0.9%) &nbsp;&nbsp;&nbsp;&nbsp; XRP: $0.62 (+1.1%)
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+# --- 4. AUTHENTICATION ---
 if 'user' not in st.session_state:
     st.session_state.user = None
 
-# AUTHENTICATION
 if st.session_state.user is None:
+    draw_ticker()
     st.markdown("<br><br>", unsafe_allow_html=True)
     _, col, _ = st.columns([1,1.2,1])
     with col:
-        st.markdown("<h2 style='text-align:center; color:#0066ff;'>PRIME ASSETS</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align:center; color:#6b778c;'>Global Institutional Wealth Management</p>", unsafe_allow_html=True)
+        st.markdown('<div class="logo-circle">P</div>', unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align:center;'>PRIME ASSETS</h2>", unsafe_allow_html=True)
         
-        email = st.text_input("Corporate ID (Email)")
-        pw = st.text_input("Access Key", type="password")
-        if st.button("Authenticate"):
-            res = supabase.table("profiles").select("*").eq("email", email.lower().strip()).eq("password", pw).execute()
-            if res.data:
-                st.session_state.user = res.data[0]
-                st.rerun()
-            else: st.error("Authentication Failed: Invalid Credentials")
+        tab1, tab2 = st.tabs(["🔒 Secure Login", "🛡️ Institutional Sign-up"])
+        with tab1:
+            email = st.text_input("Corporate Email")
+            pw = st.text_input("Access Key", type="password")
+            if st.button("Enter Terminal"):
+                res = supabase.table("profiles").select("*").eq("email", email.lower().strip()).eq("password", pw).execute()
+                if res.data:
+                    st.session_state.user = res.data[0]
+                    st.rerun()
+        with tab2:
+            n = st.text_input("Legal Full Name")
+            em = st.text_input("Registration Email")
+            new_pw = st.text_input("Create Access Key", type="password")
+            if st.button("Create Portfolio"):
+                supabase.table("profiles").insert({"full_name": n, "email": em.lower().strip(), "password": new_pw, "balance": 0, "invested": 0, "interest": 0}).execute()
+                st.success("Registration Successful. Please Login.")
 
-# MAIN DASHBOARD
+# --- 5. DASHBOARD ---
 else:
+    draw_ticker()
     u = st.session_state.user
+    # Fetch real-time data for the user
     u_data = supabase.table("profiles").select("*").eq("email", u['email']).execute().data[0]
 
-    # Sidebar Navigation
-    st.sidebar.markdown("<h3 style='color:#0066ff;'>Terminal v4.0</h3>", unsafe_allow_html=True)
-    menu = ["Asset Overview", "Digital Vault", "Transfer", "Admin Control"]
+    st.sidebar.markdown("<h2 style='color:#0066ff;'>PRIME ASSETS</h2>", unsafe_allow_html=True)
+    menu = ["Assets Overview", "Market Prices", "Admin Control"]
     if u['email'].lower() != ADMIN_EMAIL.lower():
         menu.remove("Admin Control")
-    
     choice = st.sidebar.radio("Navigation", menu)
 
-    if choice == "Asset Overview":
-        st.markdown(f"#### Welcome, {u['full_name']}")
+    if choice == "Assets Overview":
+        st.markdown(f"### Welcome, {u_data['full_name']} 👋")
         
         # High-End KPI Row
         c1, c2, c3 = st.columns(3)
-        with c1:
-            st.markdown(f"""<div class="vault-card"><div class="label">Total Managed Equity</div><div class="value">${u_data['balance']:,}.00</div><div class="status-up">LIVE PORTFOLIO</div></div>""", unsafe_allow_html=True)
-        with c2:
-            st.markdown(f"""<div class="vault-card"><div class="label">Total Capital Invested</div><div class="value">${u_data['invested']:,}.00</div></div>""", unsafe_allow_html=True)
-        with c3:
-            st.markdown(f"""<div class="vault-card"><div class="label">Accumulated Yield</div><div class="value" style="color:#00875a;">+${u_data['interest']:,}.00</div></div>""", unsafe_allow_html=True)
+        c1.markdown(f"""<div class="vault-card"><small>TOTAL EQUITY</small><h3>${u_data['balance']:,}.00</h3></div>""", unsafe_allow_html=True)
+        c2.markdown(f"""<div class="vault-card"><small>ACTIVE CAPITAL</small><h3>${u_data['invested']:,}.00</h3></div>""", unsafe_allow_html=True)
+        c3.markdown(f"""<div class="vault-card"><small>TOTAL YIELD</small><h3 style="color:#00875a;">+${u_data['interest']:,}.00</h3></div>""", unsafe_allow_html=True)
 
-        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("<br><h4>Market Exposure</h4>", unsafe_allow_html=True)
         
-        # Interactive Performance List (No Charts)
-        st.markdown("### Active Institutional Positions")
+        # Positions with Sparklines and Logos
         positions = [
-            {"name": "Bitcoin Core", "val": "$62,401.50", "share": "45%", "status": "+2.4%"},
-            {"name": "Ethereum 2.0 Staking", "val": "$3,211.20", "share": "30%", "status": "+1.8%"},
-            {"name": "Global Gold Index", "val": "$2,340.00", "share": "15%", "status": "-0.2%"},
-            {"name": "Prime USDT Liquidity", "val": "$1.00", "share": "10%", "status": "STABLE"},
+            {"img": "₿", "name": "Bitcoin", "sym": "BTC", "price": "$102,401", "trend": "📈 ﹏/‾"},
+            {"img": "Ξ", "name": "Ethereum", "sym": "ETH", "price": "$4,211", "trend": "📈 ‾\_/"},
+            {"img": "◎", "name": "Solana", "sym": "SOL", "price": "$245.80", "trend": "📈 /‾‾"},
         ]
-        
+
         for pos in positions:
             st.markdown(f"""
                 <div class="asset-row">
-                    <div><span style="font-weight:700;">{pos['name']}</span><br><small style="color:#6b778c;">Portfolio Allocation: {pos['share']}</small></div>
-                    <div style="text-align:right;"><span style="font-family:'Roboto Mono'; font-weight:700;">{pos['val']}</span><br><span class="status-up">{pos['status']}</span></div>
+                    <div style="display:flex; align-items:center;">
+                        <div style="background:#f0f3f7; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-right:15px; font-weight:bold; color:#0066ff;">{pos['img']}</div>
+                        <div><b>{pos['name']}</b><br><small style="color:#6b778c;">{pos['sym']}</small></div>
+                    </div>
+                    <div class="sparkline">{pos['trend']}</div>
+                    <div style="text-align:right;"><b>{pos['price']}</b><br><small style="color:#00875a;">Live</small></div>
                 </div>
                 """, unsafe_allow_html=True)
 
-    elif choice == "Digital Vault":
-        st.header("Asset Inventory")
-        st.info("Your assets are secured using Grade-A Cold Storage protocols.")
-        st.write("Current holdings breakdown:")
-        st.progress(45, text="High Growth Assets")
-        st.progress(35, text="Fixed Income")
-        st.progress(20, text="Cash Reserves")
+    elif choice == "Market Prices":
+        st.header("Global Market Index")
+        # Interactive Progress Bars
+        st.write("Market Dominance")
+        st.progress(52, text="BTC Dominance: 52%")
+        st.progress(18, text="ETH Dominance: 18%")
+        
+        m_df = pd.DataFrame({
+            "Asset": ["Bitcoin", "Ethereum", "Gold", "S&P 500", "USDT"],
+            "Price": ["$102,401", "$4,211", "$2,340", "$5,102", "$1.00"],
+            "24h Vol": ["$45B", "$21B", "$12B", "$80B", "$60B"]
+        })
+        st.table(m_df)
 
     elif choice == "Admin Control":
-        st.title("Administrative Access")
+        st.title("Admin Master Console")
         all_users = supabase.table("profiles").select("*").execute()
         df = pd.DataFrame(all_users.data)
-        st.table(df[['full_name', 'email', 'balance', 'invested', 'interest']])
+        st.dataframe(df[['full_name', 'email', 'balance', 'invested', 'interest']])
         
-        target = st.selectbox("Select Portfolio to Modify", df['email'])
-        new_bal = st.number_input("Update Balance ($)", value=0)
-        new_int = st.number_input("Update Interest ($)", value=0)
+        target = st.selectbox("Select Client", df['email'])
+        c_a, c_b, c_c = st.columns(3)
+        nb = c_a.number_input("Set Balance")
+        ni = c_b.number_input("Set Invested")
+        nr = c_c.number_input("Set Interest")
         if st.button("Apply Changes"):
-            supabase.table("profiles").update({"balance": new_bal, "interest": new_int}).eq("email", target).execute()
+            supabase.table("profiles").update({"balance": nb, "invested": ni, "interest": nr}).eq("email", target).execute()
             st.success("Portfolio Updated.")
 
-    if st.sidebar.button("Secure Logout"):
+    if st.sidebar.button("Logout"):
         st.session_state.user = None
         st.rerun()
