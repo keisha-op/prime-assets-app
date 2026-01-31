@@ -3,8 +3,8 @@ from supabase import create_client
 
 # --- 1. DATABASE CONNECTION ---
 # ⚠️ PASTE YOUR ACTUAL KEYS FROM SUPABASE SETTINGS HERE
-SUPABASE_URL = "https://your-id.supabase.co"
-SUPABASE_KEY = "your-anon-public-key"
+SUPABASE_URL = "https://esnuyyklguvltfngiexj.supabase.co"
+SUPABASE_KEY = "sb_publishable_IUQtk2m5J5CbNEh3ZM_9Bg_DGyqR9iA"
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 st.set_page_config(page_title="Prime Assets | Secure Terminal", layout="wide")
