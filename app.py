@@ -16,43 +16,50 @@ st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&display=swap');
     
-    /* Global Font Override */
     html, body, [class*="css"], .stApp, p, div, span, h1, h2, h3, h4, button {
         font-family: 'Fredoka', sans-serif !important;
     }
 
     .stApp { background-color: #fcfcfc; color: #111111; }
     
-    /* Moving Ticker (Black & White) */
     @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
     .ticker-wrap { background: #000000; color: #ffffff; padding: 15px 0; overflow: hidden; border-bottom: 2px solid #222; }
     .ticker-move { display: inline-block; white-space: nowrap; animation: marquee 20s linear infinite; font-size: 18px; font-weight: 500; }
     .ticker-move span { color: #00ff88; margin-left: 5px; }
 
-    /* Interactive KPI Cards */
+    /* HIGH VISIBILITY INPUTS */
+    .Widget>label {
+        color: #ffffff !important; 
+        font-size: 18px !important;
+        font-weight: 600 !important;
+    }
+    
+    .stTextInput>div>div>input {
+        background-color: #1a1a1a !important; 
+        color: #ffffff !important; 
+        border-radius: 12px !important;
+    }
+
     .kpi-card {
         background: #ffffff; padding: 25px; border-radius: 25px;
         border: 2px solid #f0f0f0; transition: 0.4s ease-in-out;
         text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.02);
     }
-    .kpi-card:hover { transform: scale(1.05); border-color: #000; box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
-    .kpi-value { font-size: 36px; font-weight: 700; color: #000; margin-top: 5px; }
+    .kpi-card:hover { transform: scale(1.05); border-color: #000; }
+    .kpi-value { font-size: 36px; font-weight: 700; color: #000; }
 
-    /* Asset Row Styling */
     .asset-row {
         display: flex; justify-content: space-between; align-items: center;
         padding: 18px 25px; background: white; border-radius: 20px;
         margin-bottom: 12px; border: 1px solid #eee; transition: 0.3s;
     }
-    .asset-row:hover { background: #000; color: #fff !important; transform: translateX(8px); }
+    .asset-row:hover { background: #000; color: #fff !important; }
     
-    /* Activity Feed Styling */
     .activity-item {
         padding: 10px 15px; border-left: 4px solid #000; background: #f9f9f9;
         margin-bottom: 10px; border-radius: 0 10px 10px 0; font-size: 14px;
     }
 
-    /* Waving Emoji */
     @keyframes wave { 0%, 100% { transform: rotate(0deg); } 20% { transform: rotate(15deg); } 40% { transform: rotate(-10deg); } 60% { transform: rotate(15deg); } }
     .wave { display: inline-block; animation: wave 2.5s infinite; transform-origin: 70% 70%; font-size: 45px; }
     </style>
@@ -78,15 +85,16 @@ if 'user' not in st.session_state:
 # --- 4. AUTHENTICATION ---
 if st.session_state.user is None:
     draw_ticker()
-    st.markdown("<br><br><br>", unsafe_allow_html=True)
+    st.markdown("<br><br>", unsafe_allow_html=True)
     _, col, _ = st.columns([1, 1.2, 1])
     with col:
-        st.markdown("<h1 style='text-align:center; font-size:70px;'>P.</h1>", unsafe_allow_html=True)
+        st.markdown("<h1 style='text-align:center; font-size:60px;'>P.</h1>", unsafe_allow_html=True)
+        st.info("🔒 Secure Institutional Access Only") 
         tab1, tab2 = st.tabs(["Login", "Register"])
         with tab1:
-            e = st.text_input("Email Address")
-            p = st.text_input("Access Key", type="password")
-            if st.button("Unlock Dashboard"):
+            e = st.text_input("Institutional Email", placeholder="e.g. name@firm.com")
+            p = st.text_input("Secure Access Key", type="password")
+            if st.button("Unlock Terminal"):
                 res = supabase.table("profiles").select("*").eq("email", e.lower().strip()).eq("password", p).execute()
                 if res.data:
                     st.session_state.user = res.data[0]
@@ -110,42 +118,27 @@ else:
     if choice == "Overview":
         st.markdown(f"<h1>Welcome back, {u_data['full_name']} <span class='wave'>👋</span></h1>", unsafe_allow_html=True)
         
-        # 4 KPIs
         c1, c2, c3, c4 = st.columns(4)
         c1.markdown(f'<div class="kpi-card"><small>BALANCE</small><div class="kpi-value">${u_data["balance"]:,}</div></div>', unsafe_allow_html=True)
         c2.markdown(f'<div class="kpi-card"><small>INVESTED</small><div class="kpi-value">${u_data["invested"]:,}</div></div>', unsafe_allow_html=True)
         c3.markdown(f'<div class="kpi-card"><small>YIELD</small><div class="kpi-value" style="color:#00c853;">+${u_data["interest"]:,}</div></div>', unsafe_allow_html=True)
         c4.markdown(f'<div class="kpi-card"><small>STATUS</small><div class="kpi-value" style="color:#0066ff;">ACTIVE</div></div>', unsafe_allow_html=True)
 
-        # Dynamic Grid: Assets vs Activity
         st.markdown("<br>", unsafe_allow_html=True)
         col_left, col_right = st.columns([2, 1])
-
         with col_left:
             st.markdown("### Portfolio Breakdown")
-            managed = [
-                {"l": "₿", "n": "Bitcoin", "p": "$102,401", "c": "+2.4%"},
-                {"l": "Ξ", "n": "Ethereum", "p": "$4,211", "c": "+1.8%"},
-                {"l": "◎", "n": "Solana", "p": "$245.80", "c": "+5.2%"},
-                {"l": "₮", "n": "Tether", "p": "$1.00", "c": "STABLE"},
-                {"l": "✕", "n": "Ripple", "p": "$0.62", "c": "+1.1%"}
-            ]
+            managed = [{"l": "₿", "n": "Bitcoin", "p": "$102,401", "c": "+2.4%"}, {"l": "Ξ", "n": "Ethereum", "p": "$4,211", "c": "+1.8%"}, {"l": "◎", "n": "Solana", "p": "$245.80", "c": "+5.2%"}, {"l": "₮", "n": "Tether", "p": "$1.00", "c": "STABLE"}]
             for m in managed:
                 st.markdown(f'<div class="asset-row"><div><span style="font-size:22px; margin-right:12px;">{m["l"]}</span><b>{m["n"]}</b></div><div><b>{m["p"]}</b> <span style="color:#00c853; margin-left:10px;">{m["c"]}</span></div></div>', unsafe_allow_html=True)
-
         with col_right:
             st.markdown("### Live Activity")
-            activities = [
-                "Yield Processed: +$12.40",
-                "Security Audit: Passed",
-                "BTC Price Alert: Up 2.4%",
-                "USDT Staking: Active"
-            ]
-            for act in activities:
+            for act in ["Yield Processed: +$12.40", "Security Audit: Passed", "BTC Price Alert: Up 2.4%"]:
                 st.markdown(f'<div class="activity-item">{act}</div>', unsafe_allow_html=True)
 
     elif choice == "Global Index":
-        st.markdown("<h1>Global Index (20)</h1>", unsafe_allow_html=True)
+        # --- NEW UPDATED GLOBAL INDEX CODE ---
+        st.markdown("<h1 style='font-family:Fredoka; font-size:20px;'>Global Market Index (Live)</h1>", unsafe_allow_html=True)
         
         full_market = [
             {"l": "₿", "n": "Bitcoin", "p": "$102,401", "ch": "+2.4%", "st": "BULLISH"},
@@ -157,7 +150,7 @@ else:
             {"l": "🐶", "n": "Doge", "p": "$0.18", "ch": "+8.2%", "st": "TRENDING"},
             {"l": "🔵", "n": "Polkadot", "p": "$8.45", "ch": "+4.5%", "st": "BULLISH"},
             {"l": "🔗", "n": "Chainlink", "p": "$19.20", "ch": "-0.5%", "st": "BEARISH"},
-            {"l": "🌸", "n": "Cardano", "ch": "+3.1%", "p": "$0.65", "st": "STABLE"},
+            {"l": "🌸", "n": "Cardano", "p": "$0.65", "ch": "+3.1%", "st": "STABLE"},
             {"l": "🔺", "n": "Avalanche", "p": "$42.15", "ch": "+2.9%", "st": "BULLISH"},
             {"l": "🏗️", "n": "Near", "p": "$7.12", "ch": "+4.1%", "st": "GROWTH"},
             {"l": "🟣", "n": "Polygon", "p": "$0.78", "ch": "-1.2%", "st": "NEUTRAL"},
@@ -172,16 +165,14 @@ else:
         
         for m in full_market:
             st.markdown(f"""
-                <div class="asset-row">
-                    <div style="display:flex; align-items:center; width:30%;">
-                        <span style="margin-right:12px; font-size:22px;">{m['l']}</span>
-                        <b>{m['n']}</b>
+                <div style="font-family:'Fredoka'; font-size:20px; display:flex; justify-content:space-between; padding:15px; border-bottom:1px solid #eee; align-items:center;">
+                    <div style="display:flex; align-items:center; gap:15px;">
+                        <span style="font-size:24px;">{m['l']}</span>
+                        <b style="font-weight:600;">{m['n']}</b>
                     </div>
-                    <div style="width:25%; font-weight:600;">{m['p']}</div>
-                    <div style="width:20%; color:#00c853; font-weight:bold;">{m['ch']}</div>
-                    <div style="width:25%; text-align:right;"><span style="background:#eee; padding:5px 12px; border-radius:15px; font-size:11px; font-weight:700;">{m['st']}</span></div>
+                    <div style="color:#00c853; font-weight:700;">{m['p']}</div>
                 </div>
-                """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
 
     if st.sidebar.button("Logout"):
         st.session_state.user = None
