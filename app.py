@@ -22,7 +22,7 @@ st.markdown("""
 
     .stApp { background-color: #fcfcfc; color: #111111; }
     
-    /* LOGIN VISIBILITY FIX */
+    /* LOGIN VISIBILITY - BOLD BLACK LABELS */
     .stTextInput label, .stPasswordInput label {
         color: #000000 !important; 
         font-weight: 700 !important;
@@ -38,12 +38,12 @@ st.markdown("""
         background: #ffffff; padding: 25px; border-radius: 25px;
         border: 2px solid #f0f0f0; transition: 0.4s; text-align: center;
     }
-    .kpi-value { font-size: 32px; font-weight: 700; color: #000; }
+    .kpi-value { font-size: 36px; font-weight: 700; color: #000; }
 
     .asset-row {
         display: flex; justify-content: space-between; align-items: center;
-        padding: 15px 20px; background: white; border-radius: 15px;
-        margin-bottom: 10px; border: 1px solid #eee;
+        padding: 18px 25px; background: white; border-radius: 20px;
+        margin-bottom: 12px; border: 1px solid #eee;
     }
     
     .activity-item {
@@ -61,8 +61,8 @@ def draw_ticker():
     st.markdown("""
         <div class="ticker-wrap"><div class="ticker-move">
         BTC <span>$102,401</span> &nbsp;&nbsp;&bull;&nbsp;&nbsp; ETH <span>$4,211</span> &nbsp;&nbsp;&bull;&nbsp;&nbsp; 
-        SOL <span>$245.89</span> &nbsp;&nbsp;&bull;&nbsp;&nbsp; BNB <span>$612.45</span> &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-        XRP <span>$0.62</span> &nbsp;&nbsp;&bull;&nbsp;&nbsp; DOGE <span>$0.18</span>
+        SOL <span>$245.89</span> &nbsp;&nbsp;&bull;&nbsp;&nbsp; ADA <span>$0.65</span> &nbsp;&nbsp;&bull;&nbsp;&nbsp; 
+        XRP <span>$0.62</span> &nbsp;&nbsp;&bull;&nbsp;&nbsp; BNB <span>$612.45</span>
         </div></div>""", unsafe_allow_html=True)
 
 if 'user' not in st.session_state:
@@ -77,8 +77,8 @@ if st.session_state.user is None:
         st.markdown("<h1 style='text-align:center; font-size:70px;'>P.</h1>", unsafe_allow_html=True)
         tab1, tab2 = st.tabs(["Login", "Register"])
         with tab1:
-            e = st.text_input("Email Address", placeholder="yourname@firm.com")
-            p = st.text_input("Access Key", type="password", placeholder="••••••••")
+            e = st.text_input("Email Address", placeholder="Enter email address...")
+            p = st.text_input("Access Key", type="password", placeholder="Enter your access key...")
             if st.button("Unlock Dashboard", use_container_width=True):
                 res = supabase.table("profiles").select("*").eq("email", e.lower().strip()).eq("password", p).execute()
                 if res.data:
@@ -87,25 +87,24 @@ if st.session_state.user is None:
                 else:
                     st.error("Invalid Credentials")
         with tab2:
-            n = st.text_input("Full Name", placeholder="e.g. John Doe")
-            em = st.text_input("Email", placeholder="name@email.com")
-            pw = st.text_input("Password", type="password", placeholder="Create key...")
+            n = st.text_input("Full Name", placeholder="Enter full name")
+            em = st.text_input("Email", placeholder="Enter email")
+            pw = st.text_input("Password", type="password", placeholder="Create key")
             if st.button("Create Account", use_container_width=True):
                 supabase.table("profiles").insert({"full_name": n, "email": em.lower().strip(), "password": pw, "balance": 0, "invested": 0, "interest": 0}).execute()
-                st.success("Registration Complete. Now go to Login.")
+                st.success("Account Created.")
 
 # --- 5. DASHBOARD ---
 else:
     draw_ticker()
-    # Fetch fresh data
     res = supabase.table("profiles").select("*").eq("email", st.session_state.user['email']).execute()
     u_data = res.data[0]
 
     st.sidebar.markdown("<h2 style='padding-top:20px;'>PRIME ASSETS</h2>", unsafe_allow_html=True)
-    nav_options = ["Overview", "Global Index"]
+    menu = ["Overview", "Global Index"]
     if u_data['email'].lower() == ADMIN_EMAIL.lower():
-        nav_options.append("Admin")
-    choice = st.sidebar.radio("Navigation", nav_options)
+        menu.append("Admin")
+    choice = st.sidebar.radio("Navigation", menu)
 
     if choice == "Overview":
         st.markdown(f"<h1>Welcome, {u_data['full_name']} <span class='wave'>👋</span></h1>", unsafe_allow_html=True)
@@ -126,30 +125,57 @@ else:
                 {"l": "Ξ", "n": "Ethereum", "p": "$4,211", "c": "+1.8%"},
                 {"l": "◎", "n": "Solana", "p": "$245.80", "c": "+5.2%"},
                 {"l": "₮", "n": "Tether", "p": "$1.00", "c": "STABLE"},
-                {"l": "✕", "n": "XRP", "p": "$0.62", "c": "+1.1%"},
-                {"l": "🔶", "n": "BNB Chain", "p": "$612.45", "c": "+0.9%"},
-                {"l": "🔵", "n": "Polkadot", "p": "$8.45", "c": "+4.5%"}
+                {"l": "✕", "n": "Ripple", "p": "$0.62", "c": "+1.1%"}
             ]
             for m in managed:
                 st.markdown(f'<div class="asset-row"><div><span style="font-size:22px; margin-right:12px;">{m["l"]}</span><b>{m["n"]}</b></div><div><b>{m["p"]}</b> <span style="color:#00c853; margin-left:10px;">{m["c"]}</span></div></div>', unsafe_allow_html=True)
 
         with col_right:
             st.markdown("### Live Activity")
-            activities = ["Yield Processed: +$12.40", "Security Audit: Passed", "BTC Price Alert: Up 2.4%", "USDT Staking: Active", "Network: Optimal"]
+            activities = ["Yield Processed: +$12.40", "Security Audit: Passed", "BTC Price Alert: Up 2.4%", "USDT Staking: Active"]
             for act in activities:
                 st.markdown(f'<div class="activity-item">{act}</div>', unsafe_allow_html=True)
 
     elif choice == "Global Index":
-        st.markdown("<h1 style='font-size:20px;'>Global Market Index (Live Activity)</h1>", unsafe_allow_html=True)
+        st.markdown("<h1>Global Index (20)</h1>", unsafe_allow_html=True)
         full_market = [
             {"l": "₿", "n": "Bitcoin", "p": "$102,401", "ch": "+2.4%", "st": "BULLISH"},
             {"l": "Ξ", "n": "Ethereum", "p": "$4,211", "ch": "+1.8%", "st": "STABLE"},
             {"l": "◎", "n": "Solana", "p": "$245.80", "ch": "+5.2%", "st": "HIGH VOL"},
             {"l": "₮", "n": "Tether", "p": "$1.00", "ch": "0.0%", "st": "PEGGED"},
-            {"l": "🔶", "n": "Binance", "p": "$612.45", "ch": "+0.9%", "st": "STABLE"}
+            {"l": "🔶", "n": "Binance", "p": "$612.45", "ch": "+0.9%", "st": "STABLE"},
+            {"l": "✕", "n": "XRP", "p": "$0.62", "ch": "+1.1%", "st": "STABLE"},
+            {"l": "🐶", "n": "Doge", "p": "$0.18", "ch": "+8.2%", "st": "TRENDING"},
+            {"l": "🔵", "n": "Polkadot", "p": "$8.45", "ch": "+4.5%", "st": "BULLISH"},
+            {"l": "🔗", "n": "Chainlink", "p": "$19.20", "ch": "-0.5%", "st": "BEARISH"},
+            {"l": "🌸", "n": "Cardano", "ch": "+3.1%", "p": "$0.65", "st": "STABLE"},
+            {"l": "🔺", "n": "Avalanche", "p": "$42.15", "ch": "+2.9%", "st": "BULLISH"},
+            {"l": "🏗️", "n": "Near", "p": "$7.12", "ch": "+4.1%", "st": "GROWTH"},
+            {"l": "🟣", "n": "Polygon", "p": "$0.78", "ch": "-1.2%", "st": "NEUTRAL"},
+            {"l": "🌕", "n": "Luna Classic", "p": "$0.0001", "ch": "+0.2%", "st": "VOLATILE"},
+            {"l": "🛡️", "n": "Monero", "p": "$175.40", "ch": "+0.5%", "st": "SECURE"},
+            {"l": "🪙", "n": "Litecoin", "p": "$98.20", "ch": "+1.3%", "st": "STABLE"},
+            {"l": "📦", "n": "Filecoin", "p": "$6.45", "ch": "+2.1%", "st": "STABLE"},
+            {"l": "🌌", "n": "Cosmos", "p": "$11.20", "ch": "+3.4%", "st": "BULLISH"},
+            {"l": "💎", "n": "Toncoin", "p": "$5.32", "ch": "+6.7%", "st": "HIGH GROWTH"},
+            {"l": "👻", "n": "Fantom", "p": "$0.89", "ch": "+1.9%", "st": "STABLE"}
         ]
         for m in full_market:
-            st.markdown(f"""
-                <div class="asset-row">
-                    <div style="display:flex; align-items:center; width:30%;">
-                        <span style="margin-right:12px; font-size:22px
+            st.markdown(f'<div class="asset-row"><div style="display:flex; align-items:center; width:30%;"><span style="margin-right:12px; font-size:22px;">{m["l"]}</span><b>{m["n"]}</b></div><div style="width:25%; font-weight:600;">{m["p"]} <br><small style="color:gray;">Updated 1h ago</small></div><div style="width:20%; color:#00c853; font-weight:bold;">{m["ch"]}</div><div style="width:25%; text-align:right;"><span style="background:#000; color:#fff; padding:5px 12px; border-radius:15px; font-size:11px; font-weight:700;">{m["st"]}</span></div></div>', unsafe_allow_html=True)
+
+    elif choice == "Admin":
+        st.markdown("<h1>Vault Control</h1>", unsafe_allow_html=True)
+        users = supabase.table("profiles").select("*").execute()
+        df = pd.DataFrame(users.data)
+        st.dataframe(df)
+        target = st.selectbox("Select User", df['email'])
+        new_bal = st.number_input("Update Balance", value=0)
+        new_int = st.number_input("Update Interest", value=0)
+        if st.button("Apply Changes"):
+            supabase.table("profiles").update({"balance": new_bal, "interest": new_int}).eq("email", target).execute()
+            st.success(f"Updated {target}")
+            st.rerun()
+
+    if st.sidebar.button("Logout"):
+        st.session_state.user = None
+        st.rerun()
